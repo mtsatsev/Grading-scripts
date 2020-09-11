@@ -3,11 +3,13 @@ import sys
 import zipfile
 import pathlib
 import smtplib
+import random
 from math import floor
 from builtins import any
 from email import encoders
 from getpass import getpass
 from string import Template
+from itertools import groupby
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
@@ -20,7 +22,8 @@ TAs = ["mario.tsatsev@student.ru.nl","mellestarke@gmail.com","dastaurin@gmail.co
 subject = "Exercises to be graded this week"
 recipients = ["mario.tsatsev@student.ru.nl", "mellestarke@gmail.com", "sven@8x10.de", "tvbuuren@science.ru.nl", "dastaurin@gmail.com"]
 sender = username
-pasword = getpass()
+#pasword = getpass()
+divisor = 5
 
 
 def split_assignments(list, n,avg):
@@ -32,13 +35,22 @@ def split_assignments(list, n,avg):
         last += avg
     return out
 
-temp_assignments = os.listdir("assignments/")
-divisor = 5
+loaded_assignments = sorted(os.listdir("assignments/"))
+
+grouped_assignments = [list(i) for j, i in groupby(loaded_assignments, lambda a: a[21:23])]
+
+temp_assignments = []
+for i in grouped_assignments:
+    temp_assignments.append(i[-1])
+
 assignments = []
+
+
 for submission in temp_assignments:
     if(submission[0:12] not in assignments and not any(submission[0:12] in x for x in assignments)):
         assignments.append(submission)
 number_assignments = floor(len(assignments)/5)
+random.shuffle(assignments)
 
 splits = split_assignments(assignments,divisor,number_assignments)
 
@@ -50,6 +62,8 @@ for (i,name) in enumerate(TAs):
             for filename in files:
                 zf.write(os.path.join(dirname,filename))
     zf.close()
+
+
 
 """
 zips = [x for x in os.listdir(pathlib.Path().absolute()) if x.endswith(".zip")]
