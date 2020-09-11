@@ -1,13 +1,29 @@
 import os
 import sys
 import zipfile
+import pathlib
+import smtplib
 from math import floor
 from builtins import any
+from email import encoders
+from getpass import getpass
+from string import Template
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
 
 
-TAs = ["Mario","Melle","Nikolai","Sven","Thijmen"]
+server="mail.ru.nl"
+port=587
+username = "mario.tsatsev@student.ru.nl"
+TAs = ["mario.tsatsev@student.ru.nl","mellestarke@gmail.com","dastaurin@gmail.com","sven@8x10.de","tvbuuren@science.ru.nl"]
+subject = "Exercises to be graded this week"
+recipients = ["mario.tsatsev@student.ru.nl", "mellestarke@gmail.com", "sven@8x10.de", "tvbuuren@science.ru.nl", "dastaurin@gmail.com"]
+sender = username
+pasword = getpass()
 
-def chunkIt(list, n,avg):
+
+def split_assignments(list, n,avg):
     out = []
     last = 0.0
 
@@ -24,7 +40,7 @@ for submission in temp_assignments:
         assignments.append(submission)
 number_assignments = floor(len(assignments)/5)
 
-splits = chunkIt(assignments,divisor,number_assignments)
+splits = split_assignments(assignments,divisor,number_assignments)
 
 for (i,name) in enumerate(TAs):
     zf = zipfile.ZipFile(name+".zip", "w")
@@ -34,3 +50,38 @@ for (i,name) in enumerate(TAs):
             for filename in files:
                 zf.write(os.path.join(dirname,filename))
     zf.close()
+
+"""
+zips = [x for x in os.listdir(pathlib.Path().absolute()) if x.endswith(".zip")]
+print(zips)
+
+def send_msg(zips):
+    smtp = smtplib.SMTP(host=server,port=587)
+    smtp.starttls()
+    smtp.login(username,pasword)
+
+    for (zip,mail) in zip(zips,TAs):
+        if mail in zip:
+            msg = MIMEMultipart()
+
+            msg['From']=sender
+            msg['To']  = mail
+            smg['Subject']=subject
+
+            attached_zip = zip
+            attachment = open(pathlib.Path().absolute()+attached_zip,"rb")
+            base = MIMEBase('application','octet-stream')
+            base.set_payload((attachment).read())
+            encoders.encode_base64(base)
+            base.add_header('content-Disposition', "attachment= %s" % attached_zip)
+            msg.attach(base)
+
+            smtp.send_message(msg)
+            del msg
+    smtp.quit()
+
+try:
+    send_msg(zips)
+except AssertionError:
+    print("This is bullshit!")
+"""
